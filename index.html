@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Health Report</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f7f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; color: #2c3e50; }
+    label { display: block; margin-top: 15px; font-weight: bold; color: #34495e; }
+    input, textarea, select {
+      width: 100%; padding: 10px; margin-top: 5px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    button {
+      margin-top: 20px; padding: 12px; background-color: #27ae60;
+      color: white; border: none; width: 100%; border-radius: 6px;
+      font-size: 16px; cursor: pointer;
+    }
+    button:hover { background-color: #219150; }
+    .note { font-size: 0.9em; color: #7f8c8d; margin-top: 10px; }
+    #result, #riskMeter {
+      margin-top: 20px; font-weight: bold; padding: 15px;
+      border-radius: 8px; white-space: pre-line;
+    }
+    .safe { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .unsafe { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .tag {
+      display: inline-block;
+      background-color: #e0f7fa;
+      color: #00796b;
+      padding: 6px 12px;
+      margin: 5px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .tag:hover {
+      background-color: #b2ebf2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="formTitle">Village / Town Health Report</h2>
+
+    <select id="languageSwitcher">
+      <option value="en">English</option>
+      <option value="hi">हिन्दी</option>
+      <option value="te">తెలుగు</option>
+      <option value="ur">اردو</option>
+    </select>
+
+    <form id="healthForm">
+      <label for="name" id="labelName">Name</label>
+      <input type="text" id="name" required />
+
+      <label for="symptoms" id="labelSymptoms">
+        Describe your symptoms
+        <button type="button" onclick="startVoiceInput()">🎙️ Speak</button>
+      </label>
+      <textarea id="symptoms" rows="4" placeholder="E.g. I have had fever and vomiting for 2 days." required></textarea>
+
+      <div id="symptomTags">
+        <span class="tag" data-symptom="fever">🌡️ Fever</span>
+        <span class="tag" data-symptom="cough">🤧 Cough</span>
+        <span class="tag" data-symptom="vomiting">🤢 Vomiting</span>
+        <span class="tag" data-symptom="diarrhea">💩 Diarrhea</span>
+        <span class="tag" data-symptom="rash">🩹 Rash</span>
+        <span class="tag" data-symptom="headache">😵 Headache</span>
+        <span class="tag" data-symptom="fatigue">😴 Fatigue</span>
+        <span class="tag" data-symptom="abdominal pain">🤕 Abdominal Pain</span>
+        <span class="tag" data-symptom="itching">🪳 Itching</span>
+      </div>
+
+      <label for="duration" id="labelDuration">Duration</label>
+      <select id="duration" required>
+        <option value="">Select duration...</option>
+        <option value="Less than 1 day">Less than 1 day</option>
+        <option value="1–3 days">1–3 days</option>
+        <option value="More than 3 days">More than 3 days</option>
+      </select>
+
+      <label for="location" id="labelLocation">Village / Town</label>
+      <input type="text" id="location" required />
+
+      <label for="water_color">Water Appearance</label>
+      <select id="water_color" required>
+        <option value="">Choose one...</option>
+        <option value="clear">Clear</option>
+        <option value="slightly_yellow">Slightly Yellow</option>
+        <option value="muddy">Muddy or Brownish</option>
+      </select>
+
+      <label for="water_smell">Water Smell</label>
+      <select id="water_smell" required>
+        <option value="">Choose one...</option>
+        <option value="no_smell">No smell</option>
+        <option value="earthy">Earthy smell</option>
+        <option value="rotten">Rotten or foul smell</option>
+        <option value="bleach">Bleach smell</option>
+      </select>
+
+      <label for="ph_level">pH Level</label>
+      <select id="ph_level" required>
+        <option value="">Choose one...</option>
+        <option value="low">Less than 6.5</option>
+        <option value="normal">6.5–8.5</option>
+        <option value="high">More than 8.5</option>
+      </select>
+
+      <label for="chloride_level">Chloride Level (mg/L)</label>
+      <select id="chloride_level" required>
+        <option value="">Choose one...</option>
+        <option value="low">Less than 250</option>
+        <option value="moderate">250–500</option>
+        <option value="high">More than 500</option>
+      </select>
+
+      <label for="nitrate_level">Nitrate Level (mg/L)</label>
+      <select id="nitrate_level" required>
+        <option value="">Choose one...</option>
+        <option value="low">Less than 10</option>
+        <option value="moderate">10–50</option>
+        <option value="high">More than 50</option>
+      </select>
+
+      <label for="photo">Upload a photo (optional)</label>
+      <input type="file" id="photo" accept="image/*" />
+
+      <p class="note">🔒 Your report is confidential and helps protect your village from disease outbreaks.</p>
+      <div id="riskMeter">🟡 Risk Level: Awaiting analysis...</div>
+      <button type="submit" id="submitBtn">Submit Report</button>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // Voice input replaces description box content
+    function startVoiceInput() {
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = document.getElementById('languageSwitcher').value + "-IN";
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('symptoms').value = transcript; // replace, not append
+      };
+      recognition.start();
+    }
+
+    // Add symptom to textarea
+    function addSymptom(symptom) {
+      const textarea = document.getElementById('symptoms');
+      const current = textarea.value.trim();
+      const separator = current ? ", " : "";
+      textarea.value = current + separator + symptom;
+    }
+
+    // Attach click event for all tags
+    document.querySelectorAll(".tag").forEach(tag => {
+      tag.addEventListener("click", () => {
+        addSymptom(tag.dataset.symptom);
+      });
+    });
+
+    // Form submit
+    document.getElementById('healthForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const data = {
+        name: document.getElementById('name').value,
+        symptoms: document.getElementById('symptoms').value,
+        duration: document.getElementById('duration').value,
+        location: document.getElementById('location').value,
+        water_color: document.getElementById('water_color').value,
+        water_smell: document.getElementById('water_smell').value,
+        ph_level: document.getElementById('ph_level').value,
+        chloride_level: document.getElementById('chloride_level').value,
+        nitrate_level: document.getElementById('nitrate_level').value
+      };
+
+      fetch("http://localhost:3000/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+        .then((res) => res.json())
+        .then((response) => {
+          // Update Risk Meter
+          const riskMeter = document.getElementById("riskMeter");
+          riskMeter.textContent = `🟡 Risk Level: ${response.riskLevel}`;
+          riskMeter.className = response.waterStatus === "safe" ? "safe" : "unsafe";
+
+          // Show Results
+          const resultDiv = document.getElementById("result");
+          resultDiv.innerHTML = `
+            <h3>💧 Water Safety: ${response.waterPrediction}</h3>
+            <h4>🦠 Possible Diseases:</h4>
+            <ul>
+              ${response.diseaseRankings.map(d => `<li>${d.disease}: ${d.likelihood}%</li>`).join("")}
+            </ul>
+          `;
+          resultDiv.className = response.waterStatus === "safe" ? "safe" : "unsafe";
+        })
+        .catch((err) => {
+          console.error("Error:", err);
+          alert("❌ Failed to submit report. Check backend connection.");
+        });
+    });
+  </script>
+</body>
+</html>
